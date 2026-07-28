@@ -2,6 +2,7 @@
 
 #include <juce_core/juce_core.h>
 #include <juce_midi_ci/juce_midi_ci.h>
+#include "../Parameters.h"
 
 class Synth
 {
@@ -25,9 +26,9 @@ public:
 private:
   std::unordered_map<int, VoiceState> _voices;
   float _sample_rate;
-  int _attack=20;
-  int _decay=20;
-  int _release=20;
+  int _attack=200;
+  int _decay=200;
+  int _release=200;
 
 public:
   Synth()

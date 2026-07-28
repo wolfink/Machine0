@@ -2,6 +2,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 // #include <gui.h>
 #include "PluginProcessor.h"
+#include "gui/GeneratorPanel.h"
 
 using namespace juce;
 
@@ -10,7 +11,7 @@ class MachZProcessorEditor : public AudioProcessorEditor
   // MachZLookAndFeel _lookAndFeel;
 
   // MixerPanel _mixPanel;
-  // GenPanel   _genPanel;
+  GeneratorPanel _genPanel;
   // ModPanel   _modPanel;
   // FXPanel    _fxPanel;
 

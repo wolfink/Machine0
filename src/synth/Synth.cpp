@@ -1,7 +1,5 @@
 #include "Synth.h"
-#include "juce_audio_basics/juce_audio_basics.h"
-
-#define wrap(a, b) ((a) < (b)) ? (a) : (a) - (b)
+#include <juce_audio_basics/juce_audio_basics.h>
 
 void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buffer)
 {
@@ -22,8 +20,8 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
 
   auto channel0_array = buffer.getWritePointer(0);
 
-	std::vector<int> notes_to_remove;
-	notes_to_remove.reserve(MAX_VOICES);
+    std::vector<int> notes_to_remove;
+    notes_to_remove.reserve(MAX_VOICES);
   for (auto& voice : _voices) {
     auto note = voice.first;
     auto state = voice.second;
@@ -68,13 +66,17 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
           state.gain = (state.gain < 0.0) ? 0.0 : state.gain;
         }
 
-        channel0_array[sample] += sin(state.angle += delta) * state.gain;
+		auto last = sin(state.angle);
+		auto curr = sin(state.angle += delta);
+		auto slew = mzparams->Slew.getValue() / _sample_rate;
+		curr = (curr - last > slew) ? last + slew : curr;
+        channel0_array[sample] += curr * state.gain;
       }
     }
 voice_end:
-  	if (state.switchpoint > buffer.getNumSamples()) {
-    	state.switchpoint -= buffer.getNumSamples();
-  	}
+    if (state.switchpoint > buffer.getNumSamples()) {
+        state.switchpoint -= buffer.getNumSamples();
+    }
     _voices[note] = state;
   }
 

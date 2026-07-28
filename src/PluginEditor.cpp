@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include "juce_gui_basics/juce_gui_basics.h"
+#include "gui/GeneratorPanel.h"
 
 MachZProcessorEditor::MachZProcessorEditor(MachZAudioProcessor& a) :
   AudioProcessorEditor(a)
@@ -9,7 +10,7 @@ MachZProcessorEditor::MachZProcessorEditor(MachZAudioProcessor& a) :
   // _fxPanel(a)
 {
   // addAndMakeVisible(_mixPanel);
-  // addAndMakeVisible(_genPanel);
+  addAndMakeVisible(_genPanel);
   // addAndMakeVisible(_modPanel);
   // addAndMakeVisible(_fxPanel);
   setSize(1300, 600);
@@ -34,7 +35,6 @@ void MachZProcessorEditor::paint(Graphics& g)
   const Font info_font(info_size, Font::FontStyleFlags::bold);
 
   g.fillAll(bg_color);
-  g.fillAll(getLookAndFeel().findColour(TextEditor::ColourIds::backgroundColourId));
 
   g.setColour(default_fill);
   g.fillRoundedRectangle(text_x, text_y, text_width, title_size + text_y, 15.0);
@@ -80,6 +80,8 @@ void MachZProcessorEditor::resized()
 
   area.removeFromTop(header);
   area.removeFromBottom(footer);
+
+  _genPanel.setBounds(area);
 
   // area.removeFromLeft(margin);
   // _mixPanel.setBounds(area.removeFromLeft(mix_pnl));
