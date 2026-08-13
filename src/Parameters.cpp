@@ -1,14 +1,31 @@
 #include "Parameters.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
+#include <cmath>
 
 JUCE_IMPLEMENT_SINGLETON(MachZParameters);
 
 MachZParameters::MachZParameters()
 {
-    auto SlewRange = juce::NormalisableRange<float>(0.0, 1.0);
-    SlewParameter = std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID("slew"), "Slew", SlewRange, 1.0);
-    SlewParameterAttachment = std::make_unique<juce::SliderParameterAttachment>(*SlewParameter, Slew);
-    Slew.setNormalisableRange(juce::NormalisableRange<double>(0.0, 1.0));
+  ParameterList(Attach)
+}
+
+double MachZParameters::Get_float_value(const MachZParameter& parameter)
+{
+  switch (parameter)
+  {
+  ParameterList(GetFloatValue)
+  default:
+    return NAN;
+  }
+}
+
+juce::Slider& MachZParameters::Get_slider(const MachZParameter& parameter)
+{
+  switch (parameter)
+  {
+  ParameterList(GetSlider)
+ 	default:
+    return getInstance()->_slw1;
+  }
 }

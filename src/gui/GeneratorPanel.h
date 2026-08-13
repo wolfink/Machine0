@@ -7,7 +7,8 @@
 
 class GeneratorPanel : public juce::Component
 {
-    juce::Slider& _slew;
+    juce::Slider& _slw1;
+    juce::Slider& _drv1;
 
 public:
     GeneratorPanel();

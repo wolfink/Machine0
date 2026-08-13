@@ -13,7 +13,7 @@ class Synth
     int begin;
     int end;
     juce::SmoothedValue<double> _gain;
-    double Update(double delta, double slew);
+    double Update(double delta);
   };
 
 public:

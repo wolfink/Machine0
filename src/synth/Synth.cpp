@@ -50,9 +50,8 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
 
     // Process active voices
     for (int sample = start; sample < buffer.getNumSamples(); sample++) {
-      channel0_array[sample] += state.Update(delta, mzparams->Slew.getValue() + 1.0) * 0.2;
+      channel0_array[sample] += state.Update(delta) * 0.2;
     }
-    printf("\n");
     _voices[note] = state;
   }
 
@@ -73,9 +72,12 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
   }
 }
 
-double Synth::VoiceState::Update(double delta, double slew)
+double Synth::VoiceState::Update(double delta)
 {
   double curr = sin(_angle += delta);
+
+	// Handle slew distortion
+  const double slew = MachZParameters::Get_float_value(MachZParameter::slw1) + 1.0;
   const double slewmod = slew * delta;
   const double slope = curr - _last;
   const int slope_sign = (*(long*) &slope >> 62) + 1;
@@ -83,6 +85,13 @@ double Synth::VoiceState::Update(double delta, double slew)
     _last + slewmod * slope_sign
     : curr;
   _last = curr;
+
+	// Handle drive distortion
+	const double drive = MachZParameters::Get_float_value(MachZParameter::drv1);
+	curr *= drive;
+	curr = (curr > 1.0) ? 1.0 : (curr < -1.0) ? -1.0 : curr; // clip
+
+  // Update angle
   _angle = ((_angle += delta) > TWOPI)
   	? _angle - TWOPI
   	: _angle;
