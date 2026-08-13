@@ -1,5 +1,6 @@
 #include "Parameters.h"
 #include "juce_core/juce_core.h"
+#include "juce_events/juce_events.h"
 
 JUCE_IMPLEMENT_SINGLETON(MachZParameters);
 

@@ -8,24 +8,19 @@ class Synth
 {
   struct VoiceState
   {
-    enum Envelope {
-      Ready,
-      Attacking,
-      Decaying,
-      Sustaining,
-      Releasing,
-      Finished
-    } env;
-    float angle;
-    float gain;
-    int switchpoint;
+    double _last;
+    double _angle;
+    int begin;
+    int end;
+    juce::SmoothedValue<double> _gain;
+    double Update(double delta, double slew);
   };
 
 public:
   constexpr static int MAX_VOICES = 64;
 private:
   std::unordered_map<int, VoiceState> _voices;
-  float _sample_rate;
+  double _sample_rate;
   int _attack=200;
   int _decay=200;
   int _release=200;
@@ -36,7 +31,7 @@ public:
     _voices.reserve(MAX_VOICES);
   }
 
-  void Set_sample_rate(float sample_rate)
+  void Set_sample_rate(double sample_rate)
   {
     _sample_rate = sample_rate;
   }
