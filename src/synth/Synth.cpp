@@ -10,16 +10,11 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
     auto message = event.getMessage();
     auto note = message.getNoteNumber();
     if (message.isNoteOn()) {
-      _voices[note] = {
-        ._last = 0.0,
-        ._angle = 0.0,
-        .begin = event.samplePosition,
-        .end = -1,
-      };
-      _voices[note]._gain.setTargetValue(0.0);
-      _voices[note]._gain.reset(_sample_rate, 0.001);
+      _voices[note].Init(event.samplePosition, _sample_rate);
+      _voices[note].gain().setTargetValue(0.0);
+      _voices[note].gain().reset(_sample_rate, 0.001);
     } else if (message.isNoteOff()) {
-      _voices[note].end = event.samplePosition;
+      _voices[note].end() = event.samplePosition;
     }
   }
 
@@ -33,26 +28,28 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
     auto delta = TWOPI * juce::MidiMessage::getMidiNoteInHertz(note) / _sample_rate;
     int start = 0;
     int end = buffer.getNumSamples();
-    if (state.begin >= 0) {
-      start = state.begin;
-      state._gain.setTargetValue(1.0);
-      state.begin = -1;
-    } else if (state.end >= 0) {
-      end = state.end;
-      state._gain.setTargetValue(0.0);
-      state.end = -1;
+    if (state.begin() >= 0) {
+      start = state.begin();
+      state.gain().setTargetValue(1.0);
+      state.begin() = -1;
+    } else if (state.end() >= 0) {
+      end = state.end();
+      state.gain().setTargetValue(0.0);
+      state.end() = -1;
     } 
 
-    if (state._gain.getTargetValue() == 0.0
-       && state._gain.getCurrentValue() < 0.001) {
+    if (state.gain().getTargetValue() == 0.0
+       && state.gain().getCurrentValue() < 0.001) {
       notes_to_remove.push_back(note);
     }
+
+    state.Set_allpass_freq(0, _sample_rate, MachZParameters::Get_float_value(MachZParameter::ap1));
+    state.Set_allpass_freq(1, _sample_rate, MachZParameters::Get_float_value(MachZParameter::ap2));
 
     // Process active voices
     for (int sample = start; sample < buffer.getNumSamples(); sample++) {
       channel0_array[sample] += state.Update(delta) * 0.2;
     }
-    _voices[note] = state;
   }
 
   // Copy channel 0 to all channels
@@ -72,6 +69,28 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
   }
 }
 
+void Synth::VoiceState::Init(int begin, double sr)
+{
+  _last = 0.0;
+  _angle = 0.0;
+  _begin = begin;
+  _end = -1;
+  _allpass1.reset();
+  _allpass2.reset();
+  Set_allpass_freq(0, sr, MachZParameters::Get_float_value(MachZParameter::ap1));
+  Set_allpass_freq(1, sr, MachZParameters::Get_float_value(MachZParameter::ap2));
+}
+
+void Synth::VoiceState::Set_allpass_freq(int index, double sr, double freq)
+{
+  auto ap_coeff = juce::IIRCoefficients::makeAllPass(sr, freq);
+  if (index == 0) {
+    _allpass1.setCoefficients(ap_coeff);
+  } else {
+    _allpass2.setCoefficients(ap_coeff);
+  }
+}
+
 double Synth::VoiceState::Update(double delta)
 {
   double curr = sin(_angle += delta);
@@ -85,6 +104,10 @@ double Synth::VoiceState::Update(double delta)
     _last + slewmod * slope_sign
     : curr;
   _last = curr;
+
+	// Allpass
+  curr = _allpass1.processSingleSampleRaw(curr);
+  curr = _allpass2.processSingleSampleRaw(curr);
 
 	// Handle drive distortion
 	const double drive = MachZParameters::Get_float_value(MachZParameter::drv1);

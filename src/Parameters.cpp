@@ -7,7 +7,7 @@ JUCE_IMPLEMENT_SINGLETON(MachZParameters);
 
 MachZParameters::MachZParameters()
 {
-  ParameterList(Attach)
+  ParameterList(AttachSlider)
 }
 
 double MachZParameters::Get_float_value(const MachZParameter& parameter)
@@ -26,6 +26,6 @@ juce::Slider& MachZParameters::Get_slider(const MachZParameter& parameter)
   {
   ParameterList(GetSlider)
  	default:
-    return getInstance()->_slw1;
+    return getInstance()->_sld_dummy;
   }
 }

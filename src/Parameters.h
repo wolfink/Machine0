@@ -7,20 +7,23 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#define ParameterList(P)\
-	P(slw1, Slew 1, 1.0, 0.0, 1.0)\
-	P(drv1, Drive 1, 1.0, 1.0, 10.0, 0.01, 0.5, true)\
+// P(name, full_name, default_value, range...)
+#define ParameterList(float_slider)\
+	float_slider(slw1, Slew 1, 1.0, 0.0, 1.0)\
+	float_slider(drv1, Drive 1, 1.0, 1.0, 10.0, 0.01, 0.5, true)\
+	float_slider(ap1, Allpass 1, 0.0, 20.0, 10000.0, 0.01, 3, true)\
+	float_slider(ap2, Allpass 2, 0.0, 20.0, 10000.0, 0.01, 3, true)
 
 #define Enumerate(name, ...) name,
 
-#define Define(name,...)\
+#define DefineSlider(name,...)\
 	juce::Slider _##name;\
   std::unique_ptr<juce::SliderParameterAttachment> _##name##ParameterAttachment;\
   std::unique_ptr<juce::AudioParameterFloat> _##name##Parameter;
 
-#define Attach(name, full_name, dft, ...)\
+#define AttachSlider(name, full_name, default_value, ...)\
     _##name##Parameter = std::make_unique<juce::AudioParameterFloat>(\
-        juce::ParameterID(#name), #full_name, juce::NormalisableRange<float>(__VA_ARGS__), dft);\
+        juce::ParameterID(#name), #full_name, juce::NormalisableRange<float>(__VA_ARGS__), default_value);\
     _##name##ParameterAttachment = std::make_unique<juce::SliderParameterAttachment>(*_##name##Parameter, _##name);\
     _##name.setNormalisableRange(juce::NormalisableRange<double>(__VA_ARGS__));
 
@@ -42,7 +45,8 @@ enum class MachZParameter
 
 class MachZParameters
 {
-  ParameterList(Define)
+  juce::Slider _sld_dummy;
+  ParameterList(DefineSlider)
 
 public:
   MachZParameters();
