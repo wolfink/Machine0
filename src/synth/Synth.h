@@ -13,7 +13,8 @@ class Synth
 {
   class VoiceState
   {
-    double _last;
+    double _last1;
+    double _last2;
     double _angle;
     int _begin;
     int _end;
@@ -25,7 +26,7 @@ class Synth
    	Expose(RW, int, begin)
    	Expose(RW, int, end)
 
-   	VoiceState() : _last(0.0), _angle(0.0), _begin(0), _end(0) {};
+   	VoiceState() : _last1(0.0), _angle(0.0), _begin(0), _end(0) {};
    	void Init(int begin, double sr);
    	void Set_allpass_freq(int index, double sr, double freq);
     double Update(double delta);

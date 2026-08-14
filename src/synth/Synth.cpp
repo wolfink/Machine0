@@ -71,7 +71,8 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
 
 void Synth::VoiceState::Init(int begin, double sr)
 {
-  _last = 0.0;
+  _last1 = 0.0;
+  _last2 = 0.0;
   _angle = 0.0;
   _begin = begin;
   _end = -1;
@@ -91,32 +92,50 @@ void Synth::VoiceState::Set_allpass_freq(int index, double sr, double freq)
   }
 }
 
+inline double calc_slew(double sample, double& last, double delta, double slew)
+{
+  const double slope = sample - last;
+  const int slope_sign = (*(long*) &slope >> 62) + 1;
+  const double slewmod = slew * delta;
+  last = (std::abs(slope) > slewmod) ?
+    last + slewmod * slope_sign
+    : sample;
+  return last;
+}
+
+inline double calc_drive(double sample, double drive)
+{
+  sample *= drive;
+  sample = (sample > 1.0) ? 1.0 : (sample < -1.0) ? -1.0 : sample; // clip
+  return sample;
+}
+
 double Synth::VoiceState::Update(double delta)
 {
-  double curr = sin(_angle += delta);
+  double sample = sin(_angle += delta);
 
-	// Handle slew distortion
-  const double slew = MachZParameters::Get_float_value(MachZParameter::slw1) + 1.0;
-  const double slewmod = slew * delta;
-  const double slope = curr - _last;
-  const int slope_sign = (*(long*) &slope >> 62) + 1;
-  curr = (std::abs(slope) > slewmod) ?
-    _last + slewmod * slope_sign
-    : curr;
-  _last = curr;
+  // Handle distortion pass 1
+  if (MachZParameters::Get_choice(MachZParameter::dist1type) == 0) {
+    sample = calc_slew(sample, _last1, delta, MachZParameters::Get_float_value(MachZParameter::slw1) + 1.0);
+  } else {
+    sample = calc_drive(sample, MachZParameters::Get_float_value(MachZParameter::drv1));
+  }
 
-	// Allpass
-  curr = _allpass1.processSingleSampleRaw(curr);
-  curr = _allpass2.processSingleSampleRaw(curr);
+  // Allpass (in parallel)
+  auto sap1 = sample;
+  auto sap2 = sample;
+  sample = _allpass1.processSingleSampleRaw(sap1) * 0.5;
+  sample += _allpass2.processSingleSampleRaw(sap2) * 0.5;
 
-	// Handle drive distortion
-	const double drive = MachZParameters::Get_float_value(MachZParameter::drv1);
-	curr *= drive;
-	curr = (curr > 1.0) ? 1.0 : (curr < -1.0) ? -1.0 : curr; // clip
+  if (MachZParameters::Get_choice(MachZParameter::dist2type) == 0) {
+    sample = calc_slew(sample, _last2, delta, MachZParameters::Get_float_value(MachZParameter::slw2) + 1.0);
+  } else {
+    sample = calc_drive(sample, MachZParameters::Get_float_value(MachZParameter::drv2));
+  }
 
   // Update angle
   _angle = ((_angle += delta) > TWOPI)
-  	? _angle - TWOPI
-  	: _angle;
-  return curr * _gain.getNextValue();
+    ? _angle - TWOPI
+    : _angle;
+  return sample * _gain.getNextValue();
 }
