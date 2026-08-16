@@ -10,11 +10,28 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
     auto message = event.getMessage();
     auto note = message.getNoteNumber();
     if (message.isNoteOn()) {
-      _voices[note].Init(event.samplePosition, _sample_rate);
-      _voices[note].gain().setTargetValue(0.0);
-      _voices[note].gain().reset(_sample_rate, 0.001);
+      if (_sustaining && _to_end.contains(note)) { // don't re-init note
+        _to_end.erase(note); // note is no longer ending
+      } else {
+        _voices[note].Init(event.samplePosition, _sample_rate);
+        _voices[note].gain().setTargetValue(0.0);
+        _voices[note].gain().reset(_sample_rate, 0.001);
+      }
     } else if (message.isNoteOff()) {
-      _voices[note].end() = event.samplePosition;
+      if (_sustaining) {
+        _to_end.insert(note);
+      } else { // if not sustaining, end the note
+        _voices[note].end() = event.samplePosition;
+      }
+    } else if (message.isSustainPedalOn()) {
+      _sustaining = true;
+    } else if (message.isSustainPedalOff()) {
+      // end all voices that are no longer being depressed
+      for (auto note : _to_end) {
+        _voices[note].end() = event.samplePosition;
+      }
+      _to_end.clear();
+      _sustaining = false;
     }
   }
 

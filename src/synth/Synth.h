@@ -36,6 +36,8 @@ public:
   constexpr static int MAX_VOICES = 64;
 private:
   std::unordered_map<int, VoiceState> _voices;
+  bool _sustaining;
+  std::set<int> _to_end;
   double _sample_rate;
   int _attack=200;
   int _decay=200;
