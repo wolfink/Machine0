@@ -5,49 +5,62 @@
 #include <juce_dsp/juce_dsp.h>
 #include "../Parameters.h"
 
-#define Expose(type,...) Expose##type(__VA_ARGS__)
-#define ExposeRO(type, name) const type& name() { return _##name; }
-#define ExposeRW(type, name) type& name() { return _##name; }
+#define Expose(type, name) Expose_##type(name)
+#define Expose_r(name) const typeof(_##name)& name() { return _##name; }
+#define Expose_rw(name) typeof(_##name)& name() { return _##name; }
 
 class Synth
 {
+
   class VoiceState
   {
-    double _last1;
-    double _last2;
-    double _angle;
-    int _begin;
-    int _end;
+  public:
+    enum Flags {
+      Inactive,
+      Active = 1,
+      Depressed = 1 << 1,
+      Decayed = 1 << 2,
+    };
+  private:
+    int _flags = Inactive;
+    int _note = 0;
+    double _freq = 0.0;
+    double _last1 = 0.0;
+    double _last2 = 0.0;
+    double _angle = 0.0;
+    unsigned int _age = 0;
+    int _begin = 0;
+    int _end = -1;
     juce::IIRFilter _allpass1;
     juce::IIRFilter _allpass2;
     juce::SmoothedValue<double> _gain;
  	public:
-   	Expose(RW, juce::SmoothedValue<double>, gain)
-   	Expose(RW, int, begin)
-   	Expose(RW, int, end)
+   	Expose(r, note)
+   	Expose(rw, flags)
+   	Expose(r, freq)
+   	Expose(rw, gain)
+   	Expose(rw, begin)
+   	Expose(rw, end)
+   	Expose(r, age)
 
-   	VoiceState() : _last1(0.0), _angle(0.0), _begin(0), _end(0) {};
-   	void Init(int begin, double sr);
    	void Set_allpass_freq(int index, double sr, double freq);
-    double Update(double delta);
+   	void Advance_age(unsigned int start) { _age += start; }
+   	void Set_note(int note);
+    double Update(double sr);
   };
 
 public:
   constexpr static int MAX_VOICES = 64;
 private:
-  std::unordered_map<int, VoiceState> _voices;
+  std::array<VoiceState, MAX_VOICES> _voices;
   bool _sustaining;
-  std::set<int> _to_end;
+  std::set<VoiceState*> _to_end;
   double _sample_rate;
   int _attack=200;
   int _decay=200;
   int _release=200;
 
 public:
-  Synth()
-  {
-    _voices.reserve(MAX_VOICES);
-  }
 
   void Set_sample_rate(double sample_rate)
   {
