@@ -6,6 +6,7 @@ GeneratorPanel::GeneratorPanel() :
   _drv1(MachZParameters::Get_slider(MachZParameter::drv1)),
   _slw2(MachZParameters::Get_slider(MachZParameter::slw2)),
   _drv2(MachZParameters::Get_slider(MachZParameter::drv2)),
+  _apkt(MachZParameters::Get_slider(MachZParameter::apkt)),
   _ap1(MachZParameters::Get_slider(MachZParameter::ap1)),
   _ap2(MachZParameters::Get_slider(MachZParameter::ap2)),
   _dist1type(MachZParameters::Get_combo_box(MachZParameter::dist1type)),
@@ -19,6 +20,7 @@ GeneratorPanel::GeneratorPanel() :
   // _slw.setTextBoxStyle(juce::Slider::NoTextBox, false, 0.0, 0.0);
   _drv2.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
   // _drv.setTextBoxStyle(juce::Slider::NoTextBox, false, 0.0, 0.0);
+  _apkt.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
   _ap1.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
   // _ap.setTextBoxStyle(juce::Slider::NoTextBox, false, 0.0, 0.0);
   _ap2.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -34,6 +36,7 @@ GeneratorPanel::GeneratorPanel() :
   addAndMakeVisible(_drv1);
   addAndMakeVisible(_slw2);
   addAndMakeVisible(_drv2);
+  addAndMakeVisible(_apkt);
   addAndMakeVisible(_ap1);
   addAndMakeVisible(_ap2);
   addAndMakeVisible(_dist1type);
@@ -65,6 +68,8 @@ void GeneratorPanel::resized()
 
   auto allpass_section = bounds.removeFromTop(100);
   juce::FlexBox allpass;
+  allpass.items.add(juce::FlexItem(_apkt)
+                    .withFlex(1));
   allpass.items.add(juce::FlexItem(_ap1)
                     .withFlex(1));
   allpass.items.add(juce::FlexItem(_ap2)

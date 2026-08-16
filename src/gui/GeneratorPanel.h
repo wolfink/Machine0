@@ -11,6 +11,7 @@ class GeneratorPanel : public juce::Component
     juce::Slider& _drv1;
     juce::Slider& _slw2;
     juce::Slider& _drv2;
+    juce::Slider& _apkt;
     juce::Slider& _ap1;
     juce::Slider& _ap2;
     juce::ComboBox& _dist1type;

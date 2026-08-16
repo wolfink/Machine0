@@ -12,6 +12,7 @@
 #define ParameterList(float_slider, choice_combo)\
     float_slider(slw1, Slew 1, 1.0, 0.0, 1.0)\
     float_slider(drv1, Drive 1, 1.0, 1.0, 10.0, 0.01, 0.5, true)\
+    float_slider(apkt, Allpass Key Tracking, 0.0, 0.0, 1.0)\
     float_slider(ap1, Allpass 1, 0.0, 20.0, 10000.0, 0.01, 3, true)\
     float_slider(ap2, Allpass 2, 0.0, 20.0, 10000.0, 0.01, 3, true)\
     float_slider(slw2, Slew 2, 1.0, 0.0, 1.0)\

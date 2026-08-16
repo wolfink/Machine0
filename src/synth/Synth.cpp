@@ -42,7 +42,8 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
   for (auto& voice : _voices) {
     auto note = voice.first;
     auto& state = voice.second;
-    auto delta = TWOPI * juce::MidiMessage::getMidiNoteInHertz(note) / _sample_rate;
+    auto freq = juce::MidiMessage::getMidiNoteInHertz(note);
+    auto delta = TWOPI * freq / _sample_rate;
     int start = 0;
     int end = buffer.getNumSamples();
     if (state.begin() >= 0) {
@@ -60,8 +61,12 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
       notes_to_remove.push_back(note);
     }
 
-    state.Set_allpass_freq(0, _sample_rate, MachZParameters::Get_float_value(MachZParameter::ap1));
-    state.Set_allpass_freq(1, _sample_rate, MachZParameters::Get_float_value(MachZParameter::ap2));
+		auto apkt = MachZParameters::Get_float_value(MachZParameter::apkt);
+    auto ap_frac = apkt * (freq / 440.0 - 1) + 1;
+    auto ap1_freq = ap_frac * MachZParameters::Get_float_value(MachZParameter::ap1);
+    auto ap2_freq = ap_frac * MachZParameters::Get_float_value(MachZParameter::ap2);
+    state.Set_allpass_freq(0, _sample_rate, ap1_freq);
+    state.Set_allpass_freq(1, _sample_rate, ap2_freq);
 
     // Process active voices
     for (int sample = start; sample < buffer.getNumSamples(); sample++) {
