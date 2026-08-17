@@ -41,7 +41,6 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
       for (int i = 0; i < MAX_VOICES; i++) {
         auto& v = _voices[i];
         if (v.note() == note) {
-          printf("ending %d at %d\n", note, i);
           v.end() = event.samplePosition;
         }
       }
@@ -83,13 +82,8 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
       voice.flags() = VoiceState::Inactive;
     }
 
-    auto apkt = MachZParameters::Get_float_value(MachZParameter::apkt);
-    auto ap_frac = apkt * (voice.freq() / 440.0 - 1) + 1;
-    auto ap1_freq = ap_frac * MachZParameters::Get_float_value(MachZParameter::ap1);
-    auto ap2_freq = ap_frac * MachZParameters::Get_float_value(MachZParameter::ap2);
-    voice.Set_allpass_freq(0, _sample_rate, ap1_freq);
-    voice.Set_allpass_freq(1, _sample_rate, ap2_freq);
 
+		voice.Prepare(_sample_rate);
     // Process active voices
     for (int sample = start; sample < buffer.getNumSamples(); sample++) {
       channel0_array[sample] += voice.Update(_sample_rate) * 0.2;
@@ -111,21 +105,63 @@ void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buff
 void Synth::VoiceState::Set_note(int note)
 { 
  	_note = note;
- 	_freq = juce::MidiMessage::getMidiNoteInHertz(note);
  	_age = 0;
 }
 
-void Synth::VoiceState::Set_allpass_freq(int index, double sr, double freq)
+void Synth::VoiceState::Prepare(double sr)
 {
-  auto ap_coeff = juce::IIRCoefficients::makeAllPass(sr, freq);
-  if (index == 0) {
-    _allpass1.setCoefficients(ap_coeff);
-  } else {
-    _allpass2.setCoefficients(ap_coeff);
-  }
+   	_freq = juce::MidiMessage::getMidiNoteInHertz(_note);
+
+    auto apkt = MachZParameters::Get_float_value(MachZParameter::apkt);
+    auto ap_frac = apkt * (_freq / 440.0 - 1) + 1;
+
+    auto ap1_freq = ap_frac * MachZParameters::Get_float_value(MachZParameter::ap1);
+    auto ap1_coeff = juce::IIRCoefficients::makeAllPass(sr, ap1_freq);
+    _allpass1.setCoefficients(ap1_coeff);
+
+    auto ap2_freq = ap_frac * MachZParameters::Get_float_value(MachZParameter::ap2);
+    auto ap2_coeff = juce::IIRCoefficients::makeAllPass(sr, ap2_freq);
+    _allpass2.setCoefficients(ap2_coeff);
+  
+    _dist1 = MachZParameters::Get_choice(MachZParameter::dist1type);
+    _dist2 = MachZParameters::Get_choice(MachZParameter::dist2type);
+
+    _slw1 =  MachZParameters::Get_float_value(MachZParameter::slw1) + 1.0;
+    _slw2 =  MachZParameters::Get_float_value(MachZParameter::slw2) + 1.0;
+    _drv1 =  MachZParameters::Get_float_value(MachZParameter::drv1);
+    _drv2 =  MachZParameters::Get_float_value(MachZParameter::drv2);
+
+    _oscs.Prepare(_note);
 }
 
-inline double calc_slew(double sample, double& last, double delta, double slew)
+double Synth::VoiceState::Update(double sr)
+{
+  double delta = TWOPI * _freq / sr;
+  double sample = _oscs.OutputNext(sr, _angle1, _angle2, _angle3, _angle4);
+
+  // Distortion pass 1
+	sample = (_dist1)
+		? Calc_drive(sample, _drv1)
+		: Calc_slew(sample, _last1, delta, _slw1);
+
+  // Allpass (in parallel)
+  auto temp = sample;
+  sample = _allpass1.processSingleSampleRaw(temp) * 0.5;
+  sample += _allpass2.processSingleSampleRaw(temp) * 0.5;
+
+	// Distortion pass 2
+	sample = (_dist2)
+		? Calc_drive(sample, _drv2)
+		: Calc_slew(sample, _last2, delta, _slw2);
+
+  // Update angle
+  // _angle1 = ((_angle1 += delta) > TWOPI)
+  //   ? _angle1 - TWOPI
+  //   : _angle1;
+  return sample * _gain.getNextValue();
+}
+
+double Synth::VoiceState::Calc_slew(double sample, double& last, double delta, double slew)
 {
   const double slope = sample - last;
   const int slope_sign = (*(long*) &slope >> 62) + 1;
@@ -136,40 +172,9 @@ inline double calc_slew(double sample, double& last, double delta, double slew)
   return last;
 }
 
-inline double calc_drive(double sample, double drive)
+double Synth::VoiceState::Calc_drive(double sample, double drive)
 {
   sample *= drive;
   sample = (sample > 1.0) ? 1.0 : (sample < -1.0) ? -1.0 : sample; // clip
   return sample;
-}
-
-double Synth::VoiceState::Update(double sr)
-{
-  double delta = TWOPI * _freq / sr;
-  double sample = sin(_angle += delta);
-
-  // Handle distortion pass 1
-  if (MachZParameters::Get_choice(MachZParameter::dist1type) == 0) {
-    sample = calc_slew(sample, _last1, delta, MachZParameters::Get_float_value(MachZParameter::slw1) + 1.0);
-  } else {
-    sample = calc_drive(sample, MachZParameters::Get_float_value(MachZParameter::drv1));
-  }
-
-  // Allpass (in parallel)
-  auto sap1 = sample;
-  auto sap2 = sample;
-  sample = _allpass1.processSingleSampleRaw(sap1) * 0.5;
-  sample += _allpass2.processSingleSampleRaw(sap2) * 0.5;
-
-  if (MachZParameters::Get_choice(MachZParameter::dist2type) == 0) {
-    sample = calc_slew(sample, _last2, delta, MachZParameters::Get_float_value(MachZParameter::slw2) + 1.0);
-  } else {
-    sample = calc_drive(sample, MachZParameters::Get_float_value(MachZParameter::drv2));
-  }
-
-  // Update angle
-  _angle = ((_angle += delta) > TWOPI)
-    ? _angle - TWOPI
-    : _angle;
-  return sample * _gain.getNextValue();
 }

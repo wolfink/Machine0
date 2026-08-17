@@ -1,3 +1,4 @@
+#include "../Parameters.h"
 #include "GeneratorPanel.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 

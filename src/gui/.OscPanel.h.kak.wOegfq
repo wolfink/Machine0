@@ -1,0 +1,29 @@
+#pragma once
+
+#include <juce_gui_basics/juce_gui_basics.h>
+
+class OscPanel : public juce::Component
+{
+  juce::Slider& osc1c;
+  juce::Slider& osc1f;
+  juce::Slider& osc2c;
+  juce::Slider& osc2f;
+  juce::Slider& osc3c;
+  juce::Slider& osc3f;
+  juce::Slider& osc4c;
+  juce::Slider& osc4f;
+  juce::Slider& osc1fm2;
+  juce::Slider& osc1fm3;
+  juce::Slider& osc1fm4;
+  juce::Slider& osc2fm3;
+  juce::Slider& osc2fm4;
+  juce::Slider& osc3fm4;
+  juce::Slider& osc1g;
+  juce::Slider& osc2g;
+  juce::Slider& osc3g;
+  juce::Slider& osc4g;
+
+public:
+  OscPanel();
+  virtual void resized() override;
+};

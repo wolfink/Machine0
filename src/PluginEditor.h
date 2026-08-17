@@ -3,6 +3,7 @@
 // #include <gui.h>
 #include "PluginProcessor.h"
 #include "gui/GeneratorPanel.h"
+#include "gui/OscPanel.h"
 
 using namespace juce;
 
@@ -12,6 +13,7 @@ class MachZProcessorEditor : public AudioProcessorEditor
 
   // MixerPanel _mixPanel;
   GeneratorPanel _genPanel;
+  OscPanel _oscPanel;
   // ModPanel   _modPanel;
   // FXPanel    _fxPanel;
 

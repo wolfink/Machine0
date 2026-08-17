@@ -6,12 +6,17 @@
 
 JUCE_IMPLEMENT_SINGLETON(MachZParameters);
 
-
-#define ImplSlider(name, full_name, default_value, ...)\
+#define ImplFloatSlider(name, full_name, default_value, ...)\
   _##name##_float = std::make_unique<juce::AudioParameterFloat>(\
     juce::ParameterID(#name), #full_name, juce::NormalisableRange<float>(__VA_ARGS__), default_value);\
   _##name##_att = std::make_unique<juce::SliderParameterAttachment>(*_##name##_float, _##name);\
   _##name.setNormalisableRange(juce::NormalisableRange<double>(__VA_ARGS__));
+
+#define ImplIntSlider(name, full_name, default_value, ...)\
+	_##name##_int = std::make_unique<juce::AudioParameterInt>(\
+  	juce::ParameterID(#name), #full_name, __VA_ARGS__, default_value);\
+  _##name##_att = std::make_unique<juce::SliderParameterAttachment>(*_##name##_int, _##name);\
+  _##name.setNormalisableRange(juce::NormalisableRange<double>(__VA_ARGS__, 1.0));
 
 #define ImplCombo(name, full_name, default_value, offset, ...) {\
   juce::StringArray choices __VA_ARGS__;\
@@ -23,13 +28,25 @@ JUCE_IMPLEMENT_SINGLETON(MachZParameters);
 
 MachZParameters::MachZParameters()
 {
-  ParameterList(ImplSlider,
+  ParameterList(ImplFloatSlider,
+                ImplIntSlider,
                 ImplCombo)
 }
 
 #define GetFromParam(name, thing)\
     case MachZParameter::name:\
         return getInstance()->thing;
+
+#define GetIntValue(name,...) GetFromParam(name, _##name.getValue())
+int MachZParameters::Get_int_value(const MachZParameter& parameter)
+{
+  switch (parameter)
+  {
+  ParameterList_IntSliders(GetIntValue)
+  default:
+    return 0;
+  }
+}
 
 #define GetFloatValue(name,...) GetFromParam(name, _##name.getValue())
 
@@ -49,7 +66,7 @@ juce::Slider& MachZParameters::Get_slider(const MachZParameter& parameter)
 {
   switch (parameter)
   {
-  ParameterList_FloatSliders(GetSlider)
+  ParameterList(GetSlider, GetSlider, Ignore)
     default:
     return getInstance()->_sld_dummy;
   }

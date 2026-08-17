@@ -4,6 +4,7 @@
 #include <juce_midi_ci/juce_midi_ci.h>
 #include <juce_dsp/juce_dsp.h>
 #include "../Parameters.h"
+#include "Oscillators.h"
 
 #define Expose(type, name) Expose_##type(name)
 #define Expose_r(name) const typeof(_##name)& name() { return _##name; }
@@ -25,12 +26,22 @@ class Synth
     int _flags = Inactive;
     int _note = 0;
     double _freq = 0.0;
+    Oscillators _oscs;
     double _last1 = 0.0;
     double _last2 = 0.0;
-    double _angle = 0.0;
+    double _angle1 = 0.0;
+    double _angle2 = 0.0;
+    double _angle3 = 0.0;
+    double _angle4 = 0.0;
     unsigned int _age = 0;
     int _begin = 0;
     int _end = -1;
+    int _dist1 = 0;
+    int _dist2 = 0;
+    double _slw1 = 1.0;
+    double _slw2 = 1.0;
+    double _drv1 = 1.0;
+    double _drv2 = 1.0;
     juce::IIRFilter _allpass1;
     juce::IIRFilter _allpass2;
     juce::SmoothedValue<double> _gain;
@@ -43,10 +54,13 @@ class Synth
    	Expose(rw, end)
    	Expose(r, age)
 
-   	void Set_allpass_freq(int index, double sr, double freq);
    	void Advance_age(unsigned int start) { _age += start; }
    	void Set_note(int note);
-    double Update(double sr);
+   	void Prepare(double sr);
+    inline double Update(double sr);
+  private:
+    inline double Calc_slew(double sample, double& last, double delta, double slew);
+    inline double Calc_drive(double sample, double drive);
   };
 
 public:
