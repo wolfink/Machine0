@@ -1,5 +1,8 @@
 #pragma once
 
+namespace mz
+{
+
 class Oscillators
 {
   double _osc1_freq = 0.0;
@@ -23,3 +26,5 @@ public:
 private:
   double Get_osc_to_freq(int note, int index);
 };
+
+}

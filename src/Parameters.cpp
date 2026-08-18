@@ -4,6 +4,9 @@
 #include "juce_events/juce_events.h"
 #include <cmath>
 
+namespace mz
+{
+
 JUCE_IMPLEMENT_SINGLETON(MachZParameters);
 
 #define ImplFloatSlider(name, full_name, default_value, ...)\
@@ -91,4 +94,6 @@ juce::ComboBox& MachZParameters::Get_combo_box(const MachZParameter& parameter)
     default:
       return getInstance()->_cmb_dummy;
   }
+}
+
 }

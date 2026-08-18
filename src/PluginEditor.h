@@ -4,12 +4,14 @@
 #include "PluginProcessor.h"
 #include "gui/GeneratorPanel.h"
 #include "gui/OscPanel.h"
+#include "gui/LookAndFeel.h"
 
-using namespace juce;
-
-class MachZProcessorEditor : public AudioProcessorEditor
+namespace mz
 {
-  // MachZLookAndFeel _lookAndFeel;
+
+class MachZProcessorEditor : public juce::AudioProcessorEditor
+{
+  LookAndFeel _lookAndFeel;
 
   // MixerPanel _mixPanel;
   GeneratorPanel _genPanel;
@@ -19,8 +21,10 @@ class MachZProcessorEditor : public AudioProcessorEditor
 
 public:
   MachZProcessorEditor(MachZAudioProcessor& a);
-  void paint(Graphics& g) override;
+  void paint(juce::Graphics& g) override;
   void resized() override;
 private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MachZProcessorEditor)
 };
+
+}

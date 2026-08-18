@@ -6,6 +6,9 @@
 #include "../Parameters.h"
 #include "Oscillators.h"
 
+namespace mz
+{
+
 #define Expose(type, name) Expose_##type(name)
 #define Expose_r(name) const typeof(_##name)& name() { return _##name; }
 #define Expose_rw(name) typeof(_##name)& name() { return _##name; }
@@ -86,3 +89,5 @@ public:
 private:
   void Release_voice(int voice);
 };
+
+}

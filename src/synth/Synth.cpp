@@ -1,7 +1,11 @@
 #include "Synth.h"
+#include "juce_core/juce_core.h"
 #include <juce_audio_basics/juce_audio_basics.h>
 
-const auto TWOPI = 2 * std::numbers::pi;
+namespace mz
+{
+
+const auto TWOPI = juce::MathConstants<double>::twoPi;
 
 void Synth::Render(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buffer)
 {
@@ -177,4 +181,6 @@ double Synth::VoiceState::Calc_drive(double sample, double drive)
   sample *= drive;
   sample = (sample > 1.0) ? 1.0 : (sample < -1.0) ? -1.0 : sample; // clip
   return sample;
+}
+
 }

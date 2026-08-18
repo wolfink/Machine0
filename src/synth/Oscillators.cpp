@@ -3,6 +3,9 @@
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_core/juce_core.h"
 
+namespace mz
+{
+
 void Oscillators::Prepare(int note)
 {
   _osc1_freq = Get_osc_to_freq(note, 0);
@@ -75,4 +78,6 @@ double Oscillators::Get_osc_to_freq(int note, int index)
     break;
   }
   return mult * base_freq;
+}
+
 }

@@ -9,8 +9,11 @@
     //                               const Identifier& valueTreeType,
     //                               ParameterLayout parameterLayout);
 
+namespace mz
+{
+
 MachZAudioProcessor::MachZAudioProcessor() :
-  AudioProcessor(BusesProperties()
+  juce::AudioProcessor(BusesProperties()
                  .withOutput("Output", juce::AudioChannelSet::stereo(), true))
   //_parameterManager(*this)
 {}
@@ -47,7 +50,7 @@ void MachZAudioProcessor::releaseResources()
 
 }
 
-void MachZAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midi_buffer) 
+void MachZAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi_buffer) 
 {
   auto num_samples = buffer.getNumSamples();
   // auto out          = *_parameterManager.getParameterValueTable(Parameters::Out, 0);
@@ -57,8 +60,8 @@ void MachZAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& 
   // int  tremolo_on   = *_parameterManager.getParameterValueTable(Parameters::TremoloOn, 0);
   // int  phaser_on    = *_parameterManager.getParameterValueTable(Parameters::PhaserOn, 0);
 
-  dsp::AudioBlock<float> in_block(buffer);
-  dsp::ProcessContextReplacing<float> mod_context(in_block);
+  juce::dsp::AudioBlock<float> in_block(buffer);
+  juce::dsp::ProcessContextReplacing<float> mod_context(in_block);
 
   buffer.clear();
   _keyboard.processNextMidiBuffer(midi_buffer, 0, num_samples, true);
@@ -164,7 +167,7 @@ void MachZAudioProcessor::reset()
 
 }
 
-AudioProcessorEditor* MachZAudioProcessor::createEditor() 
+juce::AudioProcessorEditor* MachZAudioProcessor::createEditor() 
 {
   return new MachZProcessorEditor(*this);
 }
@@ -184,12 +187,12 @@ void MachZAudioProcessor::setCurrentProgram (int index)
 
 }
 
-const String MachZAudioProcessor::getProgramName (int index) 
+const juce::String MachZAudioProcessor::getProgramName (int index) 
 {
   return "init";
 }
 
-void MachZAudioProcessor::changeProgramName (int index, const String& newName) 
+void MachZAudioProcessor::changeProgramName (int index, const juce::String& newName) 
 {
 
 }
@@ -204,7 +207,10 @@ void MachZAudioProcessor::setStateInformation (const void* data, int sizeInBytes
 
 }
 
-AudioProcessor* JUCE_CALLTYPE createPluginFilter()
-{
-  return new MachZAudioProcessor();
 }
+
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+  return new mz::MachZAudioProcessor();
+}
+

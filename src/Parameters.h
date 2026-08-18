@@ -7,17 +7,20 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+namespace mz
+{
+
 // float_slider(name, full_name, default_value, range...)
 // choice_combo(name, full_name, default_value, offset, choice_array...)
 #define ParameterList(float_slider, int_slider, choice_combo)\
 	int_slider(osc1c, Oscillator 1 Coarse, 1, -1, 32)\
-	float_slider(osc1f, Oscillator 1 Fine, 0.0, -1.0, 1.0)\
+	float_slider(osc1f, Oscillator 1 Fine, 0.0, -1.0, 1.0, 0.01)\
 	int_slider(osc2c, Oscillator 2 Coarse, 1, -1, 32)\
-	float_slider(osc2f, Oscillator 2 Fine, 0.0, -1.0, 1.0)\
+	float_slider(osc2f, Oscillator 2 Fine, 0.0, -1.0, 1.0, 0.01)\
 	int_slider(osc3c, Oscillator 3 Coarse, 1, -1, 32)\
-	float_slider(osc3f, Oscillator 3 Fine, 0.0, -1.0, 1.0)\
+	float_slider(osc3f, Oscillator 3 Fine, 0.0, -1.0, 1.0, 0.01)\
 	int_slider(osc4c, Oscillator 4 Coarse, 1, -1, 32)\
-	float_slider(osc4f, Oscillator 4 Fine, 0.0, -1.0, 1.0)\
+	float_slider(osc4f, Oscillator 4 Fine, 0.0, -1.0, 1.0, 0.01)\
 	float_slider(osc1fm2, Oscillator 1 FM -> 2, 0.0, 0.0, 1.0)\
 	float_slider(osc1fm3, Oscillator 1 FM -> 3, 0.0, 0.0, 1.0)\
 	float_slider(osc1fm4, Oscillator 1 FM -> 4, 0.0, 0.0, 1.0)\
@@ -93,3 +96,5 @@ public:
 
   JUCE_DECLARE_SINGLETON(MachZParameters, true);
 };
+
+}
