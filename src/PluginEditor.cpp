@@ -8,19 +8,11 @@ typedef juce::LookAndFeel_V4::ColourScheme::UIColour UIColour;
 
 MachZProcessorEditor::MachZProcessorEditor(MachZAudioProcessor& a) :
   AudioProcessorEditor(a)
-  // _mixPanel(a),
-  // _genPanel(a),
-  // _modPanel(a),
-  // _fxPanel(a)
 {
   setLookAndFeel(&_lookAndFeel);
-  // addAndMakeVisible(_mixPanel);
   addAndMakeVisible(_genPanel);
   addAndMakeVisible(_oscPanel);
-  // addAndMakeVisible(_modPanel);
-  // addAndMakeVisible(_fxPanel);
   setSize(900, 800);
-  //  Colour::fromRGB(30, 30, 128)
 }
 
 void MachZProcessorEditor::paint(juce::Graphics& g)
@@ -98,7 +90,6 @@ void MachZProcessorEditor::resized()
   area.removeFromRight(margin);
 
   area.removeFromTop(header);
-  //area.removeFromBottom(footer);
 
   juce::FlexBox panel_flx;
   panel_flx.flexDirection = juce::FlexBox::Direction::column;
@@ -110,16 +101,6 @@ void MachZProcessorEditor::resized()
                       .withWidth(650)
                       .withFlex(1));
   panel_flx.performLayout(area);
-
-  // area.removeFromLeft(margin);
-  // _mixPanel.setBounds(area.removeFromLeft(mix_pnl));
-  // area.removeFromLeft(margin);
-  // _genPanel.setBounds(area.removeFromLeft(gen_pnl));
-  // area.removeFromLeft(margin);
-  // _modPanel.setBounds(area.removeFromLeft(mod_pnl));
-  // area.removeFromLeft(margin);
-  // area.removeFromRight(margin);
-  // _fxPanel.setBounds(area);
 }
 
 }

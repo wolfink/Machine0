@@ -16,16 +16,6 @@ class MachZAudioProcessor : public juce::AudioProcessor
   // Data           //
   ////////////////////
 
-  // ParameterManager _parameterManager;
-  // Synthesiser _synth;
-  // Reverb _reverb;
-  // dsp::Chorus<float> _chorus;
-  // Oscillator _tremolo;
-  // dsp::Phaser<float> _phaser;
-  // dsp::DelayLine<float> _delay_l;
-  // dsp::DelayLine<float> _delay_r;
-  // int _ping_pong_channel = 0;
-  // float _delay_index = 0.0;
   juce::MidiKeyboardState _keyboard;
   Synth _synth;
   float _x = 0.0;
